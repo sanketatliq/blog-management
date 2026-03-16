@@ -27,7 +27,7 @@ class BlogController extends Controller
             $validator = Validator::make($request->all(), [
                 'title'       => ['required', 'string', 'max:255'],
                 'description' => ['required', 'string'],
-                'image'       => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+                'image'       => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             ]);
 
             if ($validator->fails()) {
@@ -90,13 +90,31 @@ class BlogController extends Controller
         }
     }
 
+    // Toggle Like
+    public function toggleLike(Blog $blog)
+    {
+        try {
+            $result = $this->blogService->toggleLike($blog);
+
+            $message  = $result['is_liked'] ? 'Blog liked successfully.' : 'Blog unliked successfully.';
+
+            return $this->sendResponse($message, new DetailResource($result['blog']));
+        } catch (\Throwable $th) {
+            Log::error('Failed to toggle like on blog', [$th->getMessage()]);
+
+            return $this->sendError('Something went wrong.', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // Get Blogs
     public function getBlogs(Request $request)
     {
         try {
             $perPage = $request->perPage ?? 10;
 
-            $blogs = $this->blogService->getBlogs($perPage);
+            $filters = $request->only('search', 'sort_by', 'sort_order', 'user_id');
+
+            $blogs = $this->blogService->getBlogs($perPage, $filters);
 
             return $this->sendResponse('Blogs fetched successfully.', new PaginatedResource($blogs));
         } catch (\Throwable $th) {
