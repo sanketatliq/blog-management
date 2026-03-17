@@ -42,7 +42,7 @@ class LoginController extends Controller
         } catch (\Throwable $th) {
             Log::error('Login failed', [$th->getMessage()]);
 
-            return $this->sendError('Something went wrong.', Response::HTTP_INTERNAL_SERVER_ERROR, $th);
+            return $this->sendError('Something went wrong.', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
